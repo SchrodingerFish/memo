@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+    <title th:text="#{nav.my.memos} + ' - ' + #{app.title}"></title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <div class="navbar">
+        <div class="navbar-content">
+            <h1>📝 <span th:text="#{nav.my.memos}"></span></h1>
+            <div class="navbar-right">
+                <div class="language-switcher">
+                    <span>🌐</span>
+                    <select id="languageSelect" onchange="changeLanguage(this.value)">
+                        <option value="zh_CN" th:selected="${#locale.toString() == 'zh_CN'}">中文</option>
+                        <option value="en" th:selected="${#locale.toString() == 'en'}">English</option>
+                        <option value="ja" th:selected="${#locale.toString() == 'ja'}">日本語</option>
+                        <option value="ko" th:selected="${#locale.toString() == 'ko'}">한국어</option>
+                    </select>
+                </div>
+                <span class="username-display" th:text="'👤 ' + ${username}"></span>
+                <form th:action="@{/logout}" method="post" style="display: inline;">
+                    <button type="submit" class="btn btn-secondary" th:text="#{nav.logout}"></button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- 音乐播放器 -->
+    <div class="music-player" id="musicPlayer">
+        <div class="music-player-main">
+            <div class="music-info">
+                <img id="musicCover" src="" alt="Album Cover" class="music-cover">
+                <div class="music-details">
+                    <div class="music-title" id="musicTitle">未播放</div>
+                    <div class="music-artist" id="musicArtist">-</div>
+                </div>
+            </div>
+
+            <div class="music-controls">
+                <button class="control-btn" id="prevBtn" title="上一首">⏮</button>
+                <button class="control-btn play-btn" id="playBtn" title="播放">▶</button>
+                <button class="control-btn" id="nextBtn" title="下一首">⏭</button>
+                <button class="control-btn" id="modeBtn" title="播放模式">🔀</button>
+            </div>
+
+            <div class="music-progress">
+                <span class="time" id="currentTime">0:00</span>
+                <input type="range" class="progress-bar" id="progressBar" min="0" max="100" value="0">
+                <span class="time" id="totalTime">0:00</span>
+            </div>
+
+            <div class="music-volume">
+                <button class="control-btn" id="volumeBtn" title="音量">🔊</button>
+                <input type="range" class="volume-bar" id="volumeBar" min="0" max="100" value="50">
+            </div>
+
+            <button class="control-btn playlist-toggle" id="playlistToggle" title="播放列表">📜</button>
+        </div>
+
+        <div class="playlist" id="playlist" style="display: none;">
+            <div class="playlist-header">
+                <h3>播放列表</h3>
+                <button class="close-playlist" id="closePlaylist">✕</button>
+            </div>
+            <ul class="playlist-items" id="playlistItems">
+                <!-- 动态生成歌曲列表 -->
+            </ul>
+        </div>
+    </div>
+
+    <audio id="audioPlayer" preload="metadata"></audio>
+
+    <div class="container">
+        <div class="memo-header">
+            <div class="filter-buttons">
+                <a th:href="@{/memos(lang=${#locale.toString()})}"
+                   th:classappend="${currentFilter == null} ? 'active' : ''"
+                   class="filter-btn" th:text="#{filter.all}"></a>
+                <a th:href="@{/memos(filter='important', lang=${#locale.toString()})}"
+                   th:classappend="${currentFilter == 'important'} ? 'active' : ''"
+                   class="filter-btn">⭐ <span th:text="#{filter.important}"></span></a>
+            </div>
+            <a th:href="@{/memos/new(lang=${#locale.toString()})}" class="btn btn-primary">+ <span th:text="#{memo.new}"></span></a>
+        </div>
+
+        <div th:if="${param.error}" class="alert alert-error" th:text="#{memo.unauthorized}"></div>
+
+        <div class="memo-grid" th:if="${memos.size() > 0}">
+            <div th:each="memo : ${memos}" class="memo-card">
+                <div class="memo-card-header">
+                    <h3 th:text="${memo.title}"></h3>
+                    <form th:action="@{/memos/toggle-important/{id}(id=${memo.id})}" method="post" style="display: inline;" class="toggle-important-form">
+                        <button type="submit" class="btn-icon" th:title="${memo.isImportant ? #messages.msg('memo.remove.important') : #messages.msg('memo.mark.important')}">
+                            <span th:text="${memo.isImportant ? '⭐' : '☆'}"></span>
+                        </button>
+                    </form>
+                </div>
+                <div class="memo-content">
+                    <p th:text="${memo.content}"></p>
+                </div>
+                <div class="memo-footer">
+                    <small class="memo-date" th:text="${#temporals.format(memo.createdAt, 'yyyy-MM-dd HH:mm')}"></small>
+                    <div class="memo-actions">
+                        <a th:href="@{/memos/edit/{id}(id=${memo.id}, lang=${#locale.toString()})}" class="btn btn-small" th:text="#{memo.edit}"></a>
+                        <form th:action="@{/memos/delete/{id}(id=${memo.id})}" method="post" style="display: inline;" class="delete-memo-form" th:attr="data-confirm=#{memo.delete.confirm}">
+                            <button type="submit" class="btn btn-small btn-danger" th:text="#{memo.delete}"></button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div th:if="${memos.size() == 0}" class="empty-state">
+            <h2>📭 <span th:text="#{memo.no.memos}"></span></h2>
+            <p th:text="#{memo.no.memos.desc}"></p>
+            <a th:href="@{/memos/new(lang=${#locale.toString()})}" class="btn btn-primary" th:text="#{memo.create.first}"></a>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+        function changeLanguage(lang) {
+            const currentUrl = new URL(window.location.href);
+            currentUrl.searchParams.set('lang', lang);
+            window.location.href = currentUrl.toString();
+        }
+    </script>
+    <script src="/js/memo-ajax.js"></script>
+    <script src="/js/music-player.js"></script>
+    <footer style="text-align: center; padding: 20px; color: #666; font-size: 14px;">
+        Powered By <a href="https://github.com/SchrodingerFish" target="_blank" style="color: #007bff; text-decoration: none;">SchrodingerFish</a>
+    </footer>
+</body>
+</html>

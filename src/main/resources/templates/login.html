@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="#{auth.login} + ' - ' + #{app.title}"></title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body class="auth-page">
+    <div class="language-switcher-top">
+        <a th:href="@{/login(lang='zh_CN')}" class="lang-link" th:classappend="${#locale.toString() == 'zh_CN'} ? 'active' : ''">中文</a>
+        <a th:href="@{/login(lang='en')}" class="lang-link" th:classappend="${#locale.toString() == 'en'} ? 'active' : ''">EN</a>
+        <a th:href="@{/login(lang='ja')}" class="lang-link" th:classappend="${#locale.toString() == 'ja'} ? 'active' : ''">日本語</a>
+        <a th:href="@{/login(lang='ko')}" class="lang-link" th:classappend="${#locale.toString() == 'ko'} ? 'active' : ''">한국어</a>
+    </div>
+
+    <div style="flex: 1; display: flex; align-items: center; justify-content: center;">
+        <div class="auth-container">
+        <div class="auth-card">
+            <div class="auth-header">
+                <h1>📝 <span th:text="#{app.name}"></span></h1>
+                <p th:text="#{auth.welcome.back}"></p>
+            </div>
+
+            <div th:if="${param.registered}" class="alert alert-success" th:text="#{auth.registration.success}"></div>
+
+            <div th:if="${param.logout}" class="alert alert-success" th:text="#{auth.logout.success}"></div>
+
+            <div th:if="${param.error}" class="alert alert-error" th:text="#{auth.invalid.credentials}"></div>
+
+            <form th:action="@{/login}" method="post" class="auth-form">
+                <div class="form-group">
+                    <label for="username" th:text="#{auth.username}"></label>
+                    <input type="text" id="username" name="username" required autofocus>
+                </div>
+
+                <div class="form-group">
+                    <label for="password" th:text="#{auth.password}"></label>
+                    <input type="password" id="password" name="password" required>
+                </div>
+
+                <button type="submit" class="btn btn-primary" th:text="#{auth.login}"></button>
+            </form>
+
+            <div class="auth-footer">
+                <p><span th:text="#{auth.dont.have.account}"></span> <a th:href="@{/register(lang=${#locale.toString()})}" th:text="#{auth.register.here}"></a></p>
+            </div>
+        </div>
+        </div>
+    </div>
+    <footer style="text-align: center; padding: 20px; color: rgba(255,255,255,0.9); font-size: 14px;">
+        Powered By <a href="https://github.com/SchrodingerFish" target="_blank" style="color: white; text-decoration: none; font-weight: 600;">SchrodingerFish</a>
+    </footer>
+</body>
+</html>
