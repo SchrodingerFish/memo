@@ -2,6 +2,16 @@
 
 一个使用 Spring Boot + Thymeleaf + PostgreSQL + JPA 构建的优美备忘录Web应用程序。
 
+## 预览
+### 登录页
+![登录页](src/main/resources/static/image/login.png)
+
+### 列表页
+![列表页](src/main/resources/static/image/list.png)
+
+### 修改页
+![修改页](src/main/resources/static/image/edit.png)
+
 ## 功能特性
 
 - ✅ 用户注册和登录认证
