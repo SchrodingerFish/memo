@@ -15,7 +15,7 @@ public class MusicService {
     private SongRepository songRepository;
 
     @Autowired
-    private NeteaseMusicService neteaseMusicService;
+    private VirtualMusicService virtualMusicService;
 
     /**
      * 初始化歌单：从网易云音乐获取并保存到数据库
@@ -27,7 +27,7 @@ public class MusicService {
             return;
         }
 
-        List<Song> songs = neteaseMusicService.fetchPopularSongs();
+        List<Song> songs = virtualMusicService.fetchPopularSongs();
         for (Song song : songs) {
             if (!songRepository.existsBySongId(song.getSongId())) {
                 songRepository.save(song);
